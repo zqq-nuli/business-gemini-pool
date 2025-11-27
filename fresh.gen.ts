@@ -10,7 +10,8 @@ import * as $api_accounts_index from "./routes/api/accounts/index.ts";
 import * as $api_auth_login from "./routes/api/auth/login.ts";
 import * as $api_auth_logout from "./routes/api/auth/logout.ts";
 import * as $api_config_index from "./routes/api/config/index.ts";
-import * as $api_models_id from "./routes/api/models/[id].ts";
+import * as $api_images_id_ from "./routes/api/images/[id].ts";
+import * as $api_models_id_ from "./routes/api/models/[id].ts";
 import * as $api_models_index from "./routes/api/models/index.ts";
 import * as $api_status from "./routes/api/status.ts";
 import * as $chat from "./routes/chat.tsx";
@@ -34,7 +35,8 @@ const manifest = {
     "./routes/api/auth/login.ts": $api_auth_login,
     "./routes/api/auth/logout.ts": $api_auth_logout,
     "./routes/api/config/index.ts": $api_config_index,
-    "./routes/api/models/[id].ts": $api_models_id,
+    "./routes/api/images/[id].ts": $api_images_id_,
+    "./routes/api/models/[id].ts": $api_models_id_,
     "./routes/api/models/index.ts": $api_models_index,
     "./routes/api/status.ts": $api_status,
     "./routes/chat.tsx": $chat,
