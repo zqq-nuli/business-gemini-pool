@@ -165,29 +165,33 @@ export async function streamChat(params: {
 }): Promise<GeminiImageResponse> {
   const { jwt, session, messages, teamId, proxy } = params;
 
-  // 构建完整的 query parts（包含所有消息，支持文本 + 图片）
+  // 只发送最后一条用户消息（与 Python 版本一致）
+  // Session 已经保存了上下文，不需要发送完整历史
+  const lastUserMessage = messages.filter((m) => m.role === "user").pop();
+  if (!lastUserMessage) {
+    throw new Error("No user message found");
+  }
+
   const queryParts: GeminiQueryPart[] = [];
 
-  for (const message of messages) {
-    if (typeof message.content === "string") {
-      if (message.content.trim()) {
-        queryParts.push({ text: message.content });
-      }
-    } else if (Array.isArray(message.content)) {
-      for (const part of message.content) {
-        if (part.type === "text" && part.text) {
-          queryParts.push({ text: part.text });
-        } else if (part.type === "image_url") {
-          // 处理图片 URL（下载并转 base64）
-          const imageData = await processImageUrl(part.image_url?.url, proxy);
-          if (imageData) {
-            queryParts.push({
-              inlineData: {
-                mimeType: imageData.mimeType,
-                data: imageData.base64Data,
-              },
-            });
-          }
+  if (typeof lastUserMessage.content === "string") {
+    if (lastUserMessage.content.trim()) {
+      queryParts.push({ text: lastUserMessage.content });
+    }
+  } else if (Array.isArray(lastUserMessage.content)) {
+    for (const part of lastUserMessage.content) {
+      if (part.type === "text" && part.text) {
+        queryParts.push({ text: part.text });
+      } else if (part.type === "image_url") {
+        // 处理图片 URL（下载并转 base64）
+        const imageData = await processImageUrl(part.image_url?.url, proxy);
+        if (imageData) {
+          queryParts.push({
+            inlineData: {
+              mimeType: imageData.mimeType,
+              data: imageData.base64Data,
+            },
+          });
         }
       }
     }
