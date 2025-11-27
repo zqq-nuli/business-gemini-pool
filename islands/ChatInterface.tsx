@@ -161,12 +161,12 @@ export default function ChatInterface() {
               // 纯文本
               aiContent += content;
             } else if (content.type === "image_url") {
-              // 图片对象
+              // 图片/视频对象
               aiImages.push({
                 id: content.image_url.url,
                 url: content.image_url.url,
-                filename: "generated_image.png",
-                mime_type: "image/png",
+                filename: content.filename || "generated_file",
+                mime_type: content.mime_type || "image/png",
               });
             }
 

@@ -329,10 +329,10 @@ function createStreamResponse(
           }
         }
 
-        // 如果有图片，逐个发送图片
+        // 如果有图片/视频，逐个发送
         if (images && images.length > 0) {
           for (const img of images) {
-            const imageUrl = img.url || `/api/images/${img.id}`;
+            const mediaUrl = img.url || `/api/images/${img.id}`;
             const imageChunk = {
               id,
               object: "chat.completion.chunk",
@@ -345,8 +345,11 @@ function createStreamResponse(
                     content: {
                       type: "image_url",
                       image_url: {
-                        url: imageUrl,
+                        url: mediaUrl,
                       },
+                      // 传递 mime_type 和 filename 给前端
+                      mime_type: img.mime_type,
+                      filename: img.filename,
                     },
                   },
                   finish_reason: null,
