@@ -130,7 +130,7 @@ export default function ChatInterface() {
 
     const decoder = new TextDecoder();
     let aiContent = "";
-    let aiImages: any[] | undefined;
+    const aiImages: any[] = [];
 
     // 添加空的 AI 消息
     const aiMessage: Message = {
@@ -154,22 +154,30 @@ export default function ChatInterface() {
         try {
           const json = JSON.parse(data);
           const content = json.choices[0]?.delta?.content;
+
           if (content) {
-            aiContent += content;
+            // content可能是字符串或对象
+            if (typeof content === "string") {
+              // 纯文本
+              aiContent += content;
+            } else if (content.type === "image_url") {
+              // 图片对象
+              aiImages.push({
+                id: content.image_url.url,
+                url: content.image_url.url,
+                filename: "generated_image.png",
+                mime_type: "image/png",
+              });
+            }
+
             // 更新最后一条消息
             messages.value = [
               ...messages.value.slice(0, -1),
-              { ...aiMessage, content: aiContent, images: aiImages },
-            ];
-          }
-
-          // 提取图片信息（通常在最后一个chunk中）
-          if (json.images) {
-            aiImages = json.images;
-            // 更新最后一条消息，添加图片
-            messages.value = [
-              ...messages.value.slice(0, -1),
-              { ...aiMessage, content: aiContent, images: aiImages },
+              {
+                ...aiMessage,
+                content: aiContent,
+                images: aiImages.length > 0 ? aiImages : undefined
+              },
             ];
           }
         } catch (e) {
@@ -196,11 +204,40 @@ export default function ChatInterface() {
     }
 
     const data = await res.json();
+    const messageContent = data.choices[0]?.message?.content;
+
+    // 解析OpenAI标准格式的content
+    let textContent = "";
+    let images: any[] | undefined;
+
+    if (typeof messageContent === "string") {
+      // 纯文本格式
+      textContent = messageContent;
+    } else if (Array.isArray(messageContent)) {
+      // 数组格式（包含文本和图片）
+      const imageItems: any[] = [];
+      for (const item of messageContent) {
+        if (item.type === "text") {
+          textContent += item.text;
+        } else if (item.type === "image_url") {
+          imageItems.push({
+            id: item.image_url.url,
+            url: item.image_url.url,
+            filename: "generated_image.png",
+            mime_type: "image/png",
+          });
+        }
+      }
+      if (imageItems.length > 0) {
+        images = imageItems;
+      }
+    }
+
     const aiMessage: Message = {
       role: "assistant",
-      content: data.choices[0]?.message?.content || "无响应",
+      content: textContent || "无响应",
       timestamp: new Date().toISOString(),
-      images: data.images, // 提取图片
+      images: images,
     };
 
     messages.value = [...messages.value, aiMessage];
