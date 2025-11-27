@@ -362,11 +362,13 @@ export async function streamChat(params: {
     // 4. 下载 fileId 引用的图片
     if (fileIdsToDownload.length > 0 && currentSession) {
       console.log(
-        `Found ${fileIdsToDownload.length} fileId references to download`
+        `Found ${fileIdsToDownload.length} fileId references to download`,
+        `\nCurrent session: ${currentSession}`
       );
 
       for (const finfo of fileIdsToDownload) {
         try {
+          console.log(`Downloading fileId: ${finfo.fileId} from session: ${currentSession}`);
           const imageData = await downloadFileWithJWT({
             jwt,
             session: currentSession,
@@ -437,7 +439,14 @@ export async function downloadFileWithJWT(params: {
 
   const res = await fetch(url, fetchOptions);
   if (!res.ok) {
-    console.error("Download file failed", res.status, res.statusText);
+    const errorText = await res.text();
+    console.error(
+      `Download file failed ${res.status} ${res.statusText}`,
+      `\nURL: ${url}`,
+      `\nSession: ${session}`,
+      `\nFileId: ${fileId}`,
+      `\nError: ${errorText.slice(0, 200)}`
+    );
     return undefined;
   }
 
